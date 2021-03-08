@@ -8,8 +8,8 @@ from nltk.tokenize import word_tokenize
 
 
 # Load Data
-train_set = pd.read_csv('hackathon_loreal_train_set.csv')
-test_set = pd.read_csv('hackathon_loreal_train_set.csv')
+train_set = pd.read_csv('../data/hackathon_loreal_train_set.csv')
+test_set = pd.read_csv('../data/hackathon_loreal_train_set.csv')
 
 nlp = spacy.load("en_core_web_sm")
 all_stopwords = nlp.Defaults.stop_words
@@ -43,7 +43,6 @@ def traitement(data):
 
     punctuation = '!"#$%&()*+-/:;<=>?@[\\]^_`{|}~,.'
 
-
     print("PONCTUATION\n")
     data['text'] = data['text'].apply(lambda x: ''.join(ch for ch in x if ch not in set(punctuation)))
 
@@ -64,7 +63,7 @@ def traitement(data):
 
     print("LEMATIZATION\n")
     data['text'] = lemmatization(data['text'])
-    data.to_csv("data_process.csv",sep=";",index=False)
+    data.to_csv("../data/data_process.csv", sep=";", index=False)
+
 
 traitement(train_set)
-
