@@ -1,5 +1,6 @@
 import pandas as pd
 import spacy
+import os
 from spacy import displacy
 from sklearn.model_selection import train_test_split
 
@@ -14,9 +15,11 @@ nlp = spacy.load("en_core_web_sm")
 def lemmatization(texts):
     output = []
     for i, text in enumerate(texts):
-        print(100*i/len(texts))
+        os.system('clear')
+        print(str(round(100*(i+1)/len(texts)))+"%")
         s = [token.lemma_ for token in nlp(text)]
         output.append(' '.join(s))
+
     return output
 
 
@@ -36,7 +39,9 @@ def traitement(data):
     data['text'] = data['text'].apply(lambda x: ' '.join(x.split()))
 
     data['text'] = lemmatization(data['text'])
-
+    
+    print(data['text'])
 
 traitement(train_set)
+
 print(train_set)
