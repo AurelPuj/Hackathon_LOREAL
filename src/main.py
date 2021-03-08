@@ -1,69 +1,64 @@
+from dataprocess import process
+import os
 import pandas as pd
-import spacy
-from spacy.lang.en.stop_words import STOP_WORDS
-from spacy import displacy
-from sklearn.model_selection import train_test_split
-from emoji_process import emoji_process
-from nltk.tokenize import word_tokenize
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+import json
 
 # Load Data
-train_set = pd.read_csv('../data/hackathon_loreal_train_set.csv')
-test_set = pd.read_csv('../data/hackathon_loreal_train_set.csv')
+train_set = pd.read_csv('data/hackathon_loreal_train_set.csv')
+test_set = pd.read_csv('data/hackathon_loreal_test_set.csv')
 
-nlp = spacy.load("en_core_web_sm")
-all_stopwords = nlp.Defaults.stop_words
+if os.path.isfile('data/data_process.csv'):
+    train_set = pd.read_csv('data/data_process.csv', sep=";")
+else:
+    process(train_set,"train_process")
 
+X_train = train_set.text
+y_train = train_set[['skincare', 'hair', 'make-up', 'other']]
+categories = ['skincare', 'hair', 'make-up', 'other']
+#X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
 
-# function to lemmatize text
-def lemmatization(texts):
-    output = []
-    for i, text in enumerate(texts):
-
-        print(str(round(100 * i / len(texts)))+"%")
-        s = [token.lemma_ for token in nlp(text)]
-        output.append(' '.join(s))
-
-    return output
-
-
-def filterstopwords(texts):
-    output = []
-    for i, text in enumerate(texts):
-        print(str(round(100 * i / len(texts))) + "%")
-        text_tokens = word_tokenize(text)
-        tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
-        output.append(' '.join(tokens_without_sw))
-    return output
+# Define a pipeline combining a text feature extractor with multi lable classifier
+LogReg_pipeline = Pipeline([
+                ('tfidf', TfidfVectorizer()),
+                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
+            ])
 
 
-def traitement(data):
+if os.path.isfile('data/data_process.csv'):
+    test_set = pd.read_csv('data/test_process.csv', sep=";")
+else:
+    process(test_set, "test_process")
 
-    data.text = emoji_process(data.text)
+X_test = test_set.text
+predictions_cat = []
 
-    punctuation = '!"#$%&()*+-/:;<=>?@[\\]^_`{|}~,.'
-
-    print("PONCTUATION\n")
-    data['text'] = data['text'].apply(lambda x: ''.join(ch for ch in x if ch not in set(punctuation)))
-
-    print("LOWER\n")
-    # convert text to lowercase
-    data['text'] = data['text'].str.lower()
-
-    print("NUMBER\n")
-    # remove numbers
-    data['text'] = data['text'].str.replace("[0-9]", " ")
-
-    print("WHITESPACE\n")
-    # remove whitespaces
-    data['text'] = data['text'].apply(lambda x: ' '.join(x.split()))
-
-    print("STOPWORDS\n")
-    data['text'] = filterstopwords(data['text'])
-
-    print("LEMATIZATION\n")
-    data['text'] = lemmatization(data['text'])
-    data.to_csv("../data/data_process.csv", sep=";", index=False)
+for category in categories:
+    print('... Processing {}'.format(category))
+    # train the model using X_dtm & y
+    LogReg_pipeline.fit(X_train, y_train[category])
+    ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
+    # compute the testing accuracy
+    prediction = LogReg_pipeline.predict(X_test)
+    for i, p in enumerate(prediction):
+        if len(predictions_cat) == i:
+            predictions_cat.append([])
+            predictions_cat[i] = [int(p)]
+        else:
+            if category != 'other':
+                predictions_cat[i].append(int(p))
+            else:
+                if p == 0:
+                    predictions_cat[i].append(int(p))
+                else:
+                    predictions_cat[i] = [0, 0, 0, 1]
+print(test_set['index'].tolist())
 
 
-traitement(train_set)
+dict = {"hash":"be432aa27d928f60", "data":{"index":test_set['index'].tolist(), "label":predictions_cat}}
+
+with open('data.txt', 'w') as outfile:
+    json.dump(dict, outfile)
