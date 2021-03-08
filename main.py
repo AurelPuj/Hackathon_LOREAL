@@ -34,8 +34,6 @@ def filterstopwords(texts):
         text_tokens = word_tokenize(text)
         tokens_without_sw = [word for word in text_tokens if not word in all_stopwords]
         output.append(' '.join(tokens_without_sw))
-        print(output)
-
     return output
 
 
@@ -67,8 +65,6 @@ def traitement(data):
     print("LEMATIZATION\n")
     data['text'] = lemmatization(data['text'])
     data.to_csv("data_process.csv",sep=";",index=False)
-
-
 
 traitement(train_set)
 

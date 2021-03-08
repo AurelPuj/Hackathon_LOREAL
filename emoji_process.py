@@ -1,14 +1,4 @@
-import emot
-from emot.core import emoji
-from emot.core import emoticons
-from emot.emo_unicode import EMO_UNICODE
-from emot.emo_unicode import UNICODE_EMO
-from emot.emo_unicode import EMOTICONS
 import emot.core as emo
-
-
-
-
 
 def emoji_process(data):
     output = [ ]
