@@ -1,16 +1,9 @@
-import pandas as pd
 import spacy
 from spacy.lang.en.stop_words import STOP_WORDS
 from spacy import displacy
-from sklearn.model_selection import train_test_split
 from emoji_process import emoji_process
 from nltk.tokenize import word_tokenize
-
-
-# Load Data
-train_set = pd.read_csv('hackathon_loreal_train_set.csv')
-test_set = pd.read_csv('hackathon_loreal_train_set.csv')
-
+import os
 nlp = spacy.load("en_core_web_sm")
 all_stopwords = nlp.Defaults.stop_words
 
@@ -37,12 +30,11 @@ def filterstopwords(texts):
     return output
 
 
-def traitement(data):
+def process(data,file_name):
 
     data.text = emoji_process(data.text)
 
     punctuation = '!"#$%&()*+-/:;<=>?@[\\]^_`{|}~,.'
-
 
     print("PONCTUATION\n")
     data['text'] = data['text'].apply(lambda x: ''.join(ch for ch in x if ch not in set(punctuation)))
@@ -64,7 +56,5 @@ def traitement(data):
 
     print("LEMATIZATION\n")
     data['text'] = lemmatization(data['text'])
-    data.to_csv("data_process.csv",sep=";",index=False)
 
-traitement(train_set)
-
+    data.to_csv("data/"+file_name+".csv", sep=";", index=False)
